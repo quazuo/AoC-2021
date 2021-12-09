@@ -75,7 +75,8 @@ concept Container = is_stl_container<T>;
 template <typename T>
 concept Element = (std::is_integral_v<T>
     || std::is_floating_point_v<T>
-    || std::same_as<T, std::string>);
+    || std::same_as<T, std::string>
+    || std::same_as<T, std::_Bit_reference>); // vector<bool> doesn't store bools (shocking) (zamn)
 
 template<class T>
 concept Pair = requires(T p) {
@@ -91,8 +92,9 @@ template<Element T>
 void my_print(T el, bool newline = false) {
     std::cout << el;
 
-    if (newline)
+    if (newline) {
         std::cout << "\n";
+    }
 }
 
 template<Container T>
@@ -106,32 +108,39 @@ void my_print(T pair, bool newline = false) {
     my_print(pair.second);
     std::cout << ")";
 
-    if (newline)
+    if (newline) {
         std::cout << "\n";
+    }
 }
 
 template<Container T>
 void my_print(T cont, bool newline) {
-    std::cout << "[";
     static constexpr bool const is_nested_cont = Container<decltype(*cont.begin())>;
+    std::cout << "[";
+    if (!is_nested_cont) {
+        std::cout << " ";
+    }
 
     for (auto it = cont.begin(); it != cont.end(); it++) {
         if (is_nested_cont) {
-            my_print(*it, true);
-            if (std::next(it) != cont.end())
+            if (it != cont.begin()) {
                 std::cout << " ";
+            }
+            my_print(*it, std::next(it) != cont.end());
         }
         else {
-            std::cout << " ";
             my_print(*it);
-            if (std::next(it) != cont.end())
+            if (std::next(it) != cont.end()) {
                 std::cout << ",";
+            }
+            std::cout << " ";
         }
     }
 
-    std::cout << " ]";
-    if (newline)
+    std::cout << "]";
+    if (newline) {
         std::cout << "\n";
+    }
 }
 
 #endif //PLAYGROUND_UTILS_H
