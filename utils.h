@@ -89,7 +89,7 @@ concept Pair = requires(T p) {
 };
 
 template<Element T>
-void my_print(T el, bool newline = false) {
+void my_print(T el, bool newline = false, bool niceprint = true) {
     std::cout << el;
 
     if (newline) {
@@ -98,15 +98,18 @@ void my_print(T el, bool newline = false) {
 }
 
 template<Container T>
-void my_print(T cont, bool newline = false);
+void my_print(T cont, bool newline = false, bool niceprint = true);
 
 template<Pair T>
-void my_print(T pair, bool newline = false) {
-    std::cout << "(";
-    my_print(pair.first);
-    std::cout << ", ";
-    my_print(pair.second);
-    std::cout << ")";
+void my_print(T pair, bool newline = false, bool niceprint = true) {
+    if (niceprint)
+        std::cout << "(";
+    my_print(pair.first, newline, niceprint);
+    if (niceprint)
+        std::cout << ", ";
+    my_print(pair.second, newline, niceprint);
+    if (niceprint)
+        std::cout << ")";
 
     if (newline) {
         std::cout << "\n";
@@ -114,30 +117,35 @@ void my_print(T pair, bool newline = false) {
 }
 
 template<Container T>
-void my_print(T cont, bool newline) {
+void my_print(T cont, bool newline, bool niceprint) {
     static constexpr bool const is_nested_cont = Container<decltype(*cont.begin())>;
-    std::cout << "[";
-    if (!is_nested_cont) {
-        std::cout << " ";
-    }
-
-    for (auto it = cont.begin(); it != cont.end(); it++) {
-        if (is_nested_cont) {
-            if (it != cont.begin()) {
-                std::cout << " ";
-            }
-            my_print(*it, std::next(it) != cont.end());
-        }
-        else {
-            my_print(*it);
-            if (std::next(it) != cont.end()) {
-                std::cout << ",";
-            }
+    if (niceprint) {
+        std::cout << "[";
+        if (!is_nested_cont) {
             std::cout << " ";
         }
     }
 
-    std::cout << "]";
+    for (auto it = cont.begin(); it != cont.end(); it++) {
+        if (is_nested_cont) {
+            if (niceprint && it != cont.begin()) {
+                std::cout << " ";
+            }
+            my_print(*it, std::next(it) != cont.end(), niceprint);
+        }
+        else {
+            my_print(*it);
+            if (niceprint) {
+                if (std::next(it) != cont.end()) {
+                    std::cout << ",";
+                }
+                std::cout << " ";
+            }
+        }
+    }
+
+    if (niceprint)
+        std::cout << "]";
     if (newline) {
         std::cout << "\n";
     }
